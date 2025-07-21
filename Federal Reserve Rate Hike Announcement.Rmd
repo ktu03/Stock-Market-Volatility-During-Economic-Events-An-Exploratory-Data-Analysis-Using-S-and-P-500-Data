@@ -1,0 +1,300 @@
+---
+title: "x"
+output: html_document
+date: "2025-07-14"
+---
+On June 15, 2022, the Federal Reserve raised interest rates by 0.75%, the highest rate hike since 1994, while indicating that another rate hike of 0.75% is possible. However, Chair of the Federal Reserve also stated that such high interest rate increases would not be a common move in the future, reducing uncertainty in markets.
+
+```{r}
+library("tidyquant")
+library("forecast")
+library("zoo")
+library("ggplot2")
+library("stats")
+library("tidyverse")
+library("tidymodels")
+library("caret")
+library('dplyr')
+library("corrplot")
+```
+
+## Time Series' for Federal Reserve 2022 0.75% Rate Hike
+
+Below are the daily time series for the stock prices from the selected GICS sector companies.
+
+```{r}
+##Nvidia
+nvda_data<-tq_get("NVDA",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_nvda<-xts(nvda_data$adjusted,order.by=nvda_data$date)
+plot(xts_nvda,main="Nvidia Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+nvda_data
+
+
+##Amazon
+amzn_data<-tq_get("AMZN",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_amzn<-xts(amzn_data$adjusted,order.by=amzn_data$date)
+plot(xts_amzn,main="Amazon Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+amzn_data
+
+##Berkshire Hathaway
+brkb_data<-tq_get("BRK-B",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_brkb<-xts(brkb_data$adjusted,order.by=brkb_data$date)
+plot(xts_brkb,main="Berkshire Hathaway Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+brkb_data
+
+##Tesla
+tsla_data<-tq_get("TSLA",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_tsla<-xts(tsla_data$adjusted,order.by=tsla_data$date)
+plot(xts_tsla,main="Tesla Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+tsla_data
+
+##Walmart
+wmt_data<-tq_get("WMT",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_wmt<-xts(wmt_data$adjusted,order.by=tsla_data$date)
+plot(xts_wmt,main="Walmart Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+wmt_data
+
+##Johnson & Johnson
+jnj_data<-tq_get("JNJ",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
+xts_jnj<-xts(jnj_data$adjusted,order.by=tsla_data$date)
+plot(xts_jnj,main="Johnson & Johnson Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+jnj_data
+```
+
+
+## Analysis of Time Series
+
+
+
+
+## Cross Validation for Time Series Trend Decomposition for Federal Reserve 2022 0.75% Rate Hike
+
+Cross-validation is performed to select an optimal span, the proportion of data used to smooth local regressions, for the trend decomposition. The timeslice method respects the ordering of the data by date, which matters in the context of time series analysis. For each stock, cross validation is performed for each span starting from 0.01, incrementing by 0.01, and up to 1. In this analysis, a 4-fold cross-validation is performed, given the 41 trading days used. The data for each stock are split into training and testing sets to first fit an LOESS model to estimate the trend of stock price, then assess the accuracy using the testing set. Initially, the first 33 trading days are included in the first training set, and then the training window shifts forward by one day for the next training set, maintaining the 33-day window. The testing set will consist of the 5 trading days after, which the model estimates the trend of stock prices for those days. For each span, the root mean squared error is calculated  for each fold and the optimal span is selected by choosing the span that has the lowest average root mean squared error.
+
+```{r}
+set.seed(100)
+
+##Nvidia
+nvda_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+nvda_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+nvda_data$date_times<-as.numeric(nvda_data$date)
+nvda_cv<-suppressWarnings(train(adjusted~date_times,data=nvda_data,method="gamLoess",tuneGrid=nvda_grid_vals,trControl=nvda_train))
+nvda_optimal_span<-nvda_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+##Amazon
+amzn_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+amzn_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+amzn_data$date_times<-as.numeric(amzn_data$date)
+amzn_cv<-suppressWarnings(train(adjusted~date_times,data=amzn_data,method="gamLoess",tuneGrid=amzn_grid_vals,trControl=amzn_train))
+amzn_optimal_span<-amzn_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+##Berkshire Hathaway
+brkb_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+brkb_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+brkb_data$date_times<-as.numeric(brkb_data$date)
+brkb_cv<-suppressWarnings(train(adjusted~date_times,data=brkb_data,method="gamLoess",tuneGrid=brkb_grid_vals,trControl=brkb_train))
+brkb_optimal_span<-brkb_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+##Tesla
+tsla_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+tsla_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+tsla_data$date_times<-as.numeric(tsla_data$date)
+tsla_cv<-suppressWarnings(train(adjusted~date_times,data=tsla_data,method="gamLoess",tuneGrid=tsla_grid_vals,trControl=tsla_train))
+tsla_optimal_span<-tsla_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+##Walmart
+wmt_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+wmt_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+wmt_data$date_times<-as.numeric(wmt_data$date)
+wmt_cv<-suppressWarnings(train(adjusted~date_times,data=wmt_data,method="gamLoess",tuneGrid=wmt_grid_vals,trControl=wmt_train))
+wmt_optimal_span<-wmt_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+##Johnson & Johnson
+jnj_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
+jnj_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
+jnj_data$date_times<-as.numeric(jnj_data$date)
+jnj_cv<-suppressWarnings(train(adjusted~date_times,data=jnj_data,method="gamLoess",tuneGrid=jnj_grid_vals,trControl=jnj_train))
+jnj_optimal_span<-jnj_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
+nvda_optimal_span
+amzn_optimal_span
+brkb_optimal_span
+tsla_optimal_span
+wmt_optimal_span
+jnj_optimal_span
+```
+
+
+## Time Series Decomposition (Trend & Residual)
+
+Trend and Residual decompositions are created for the Time Series for Federal Reserve 2022 0.75% Rate Hike of the 6 S&P 500 stocks using the optimal span calculated for each stock. Seasonal decompositions were not included as Federal Reserve announcement for such a large magnitude of a percentage point does not occur on a seasonal basis.
+
+```{r}
+
+##Nvidia 
+loess_nvda<-loess(adjusted~as.numeric(date),data=nvda_data,span=nvda_optimal_span)
+smooth_nvda<-predict(loess_nvda)
+trend_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_nvda),color="red",linewidth=1.4)+labs(title="NVDA Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_nvda_plot
+nvda_data$residual_decomp<-residuals(loess_nvda)
+residual_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="NVDA Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_nvda_plot
+nvda_data
+
+##Amazon
+loess_amzn<-loess(adjusted~as.numeric(date),data=amzn_data,span=amzn_optimal_span)
+smooth_amzn<-predict(loess_amzn)
+trend_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_amzn),color="red",linewidth=1.4)+labs(title="AMZN Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_amzn_plot
+amzn_data$residual_decomp<-residuals(loess_amzn)
+residual_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="AMZN Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_amzn_plot
+amzn_data
+
+##Berkshire Hathaway
+loess_brkb<-loess(adjusted~as.numeric(date),data=brkb_data,span=brkb_optimal_span)
+smooth_brkb<-predict(loess_brkb)
+trend_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_brkb),color="red",linewidth=1.4)+labs(title="BRKB Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_brkb_plot
+brkb_data$residual_decomp<-residuals(loess_brkb)
+residual_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="BRKB Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_brkb_plot
+brkb_data
+
+##Tesla
+loess_tsla<-loess(adjusted~as.numeric(date),data=tsla_data,span=tsla_optimal_span)
+smooth_tsla<-predict(loess_tsla)
+trend_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_tsla),color="red",linewidth=1.4)+labs(title="TSLA Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_tsla_plot
+tsla_data$residual_decomp<-residuals(loess_tsla)
+residual_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="TSLA Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_tsla_plot
+tsla_data
+
+##Walmart
+
+loess_wmt<-loess(adjusted~as.numeric(date),data=wmt_data,span=wmt_optimal_span)
+smooth_wmt<-predict(loess_wmt)
+trend_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_wmt),color="red",linewidth=1.4)+labs(title="WMT Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_wmt_plot
+wmt_data$residual_decomp<-residuals(loess_wmt)
+residual_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="WMT Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_wmt_plot
+wmt_data
+
+##Johnson & Johnson
+
+loess_jnj<-loess(adjusted~as.numeric(date),data=jnj_data,span=jnj_optimal_span)
+smooth_jnj<-predict(loess_jnj)
+trend_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_jnj),color="red",linewidth=1.4)+labs(title="JNJ Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_jnj_plot
+jnj_data$residual_decomp<-residuals(loess_jnj)
+residual_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="JNJ Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_jnj_plot
+jnj_data
+
+```
+
+## Analysis of Trend and Residual Decompositions
+
+## Returns, Mean Returns, Volatility, and 3-Day Rolling Volatility
+
+Calculating returns, mean returns, volatility, and 3-day rolling volatility to compare for data analysis. For each stock, the returns, mean returns, and volatility are calculated prior to and after the Federal Reserve announcement to observe differences. The 3-day rolling volatility is calculated using the data from the previous 2 trading days and the current day, which means the first 3-day rolling volatility occurs on the third trading day. 
+
+```{r}
+
+###Returns, Mean Returns
+
+##Nvidia
+nvda_data<-nvda_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+nvda_mean_return_pre<-nvda_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(nvda_mean_return_pre = mean(returns,na.rm=TRUE))
+nvda_mean_return_post<-nvda_data|>filter(date>="2025-04-03",date<="2025-05-02")|>summarise(nvda_mean_return_post = mean(returns,na.rm=TRUE))
+
+##Amazon
+amzn_data<-amzn_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+amzn_mean_return_pre<-amzn_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(amzn_mean_return_pre = mean(returns,na.rm=TRUE))
+amzn_mean_return_post<-nvda_data|>filter(date>="2025-04-03",date<="2025-05-02")|>summarise(amzn_mean_return_post = mean(returns,na.rm=TRUE))
+
+##Berkshire Hathaway
+brkb_data<-brkb_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+brkb_mean_return_pre<-brkb_data|>filter("2025-03-02"<=date,date<="2025-04-01")|>summarise(brkb_mean_return_pre=mean(returns,na.rm=TRUE))
+brkb_mean_return_post<-brkb_data|>filter("2025-04-03"<=date,date<="2025-05-02")|>summarise(brkb_mean_return_post=mean(returns,na.rm=TRUE))
+
+##Tesla
+tsla_data<-tsla_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+tsla_mean_return_pre<-tsla_data|>filter("2025-03-02"<=date,date<="2025-04-01")|>summarise(tsla_mean_return_pre=mean(returns,na.rm=TRUE))
+tsla_mean_return_post<-tsla_data|>filter("2025-04-03"<=date,date<="2025-05-02")|>summarise(tsla_mean_return_post=mean(returns,na.rm=TRUE))
+
+##Walmart
+wmt_data<-wmt_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+wmt_mean_return_pre<-wmt_data|>filter("2025-03-02"<=date,date<="2025-04-01")|>summarise(wmt_mean_return_pre=mean(returns,na.rm=TRUE))
+wmt_mean_return_post<-wmt_data|>filter("2025-04-03"<=date,date<="2025-05-02")|>summarise(wmt_mean_return_post=mean(returns,na.rm=TRUE))
+
+##Johnson & Johnson
+jnj_data<-jnj_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+jnj_mean_return_pre<-jnj_data|>filter("2025-03-02"<=date,date<="2025-04-01")|>summarise(jnj_mean_return_pre=mean(returns,na.rm=TRUE))
+jnj_mean_return_post<-jnj_data|>filter("2025-04-03"<=date,date<="2025-05-02")|>summarise(jnj_mean_return_post=mean(returns,na.rm=TRUE))
+
+
+###Volatility
+
+##Nvidia
+nvda_volatility<-nvda_data|>summarise(nvda_volatility=sd(returns,na.rm=TRUE))
+nvda_volatility_pre<-nvda_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(nvda_volatility_pre=sd(returns,na.rm=TRUE))
+nvda_volatility_post<-nvda_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(nvda_volatility_post=sd(returns,na.rm=TRUE))
+nvda_volatility_post
+
+##Amazon
+amzn_volatility<-amzn_data|>summarise(amzn_volatility=sd(returns,na.rm=TRUE))
+amzn_volatility_pre<-amzn_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(amzn_volatility_pre=sd(returns,na.rm=TRUE))
+amzn_volatility_post<-amzn_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(amzn_volatility_post=sd(returns,na.rm=TRUE))
+
+##Berkshire Hathaway
+brkb_volatility<-brkb_data|>summarise(brkb_volatility=sd(returns,na.rm=TRUE))
+brkb_volatility_pre<-brkb_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(brkb_volatility_pre=sd(returns,na.rm=TRUE))
+brkb_volatility_post<-brkb_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(brkb_volatility_post=sd(returns,na.rm=TRUE))
+
+##Tesla
+tsla_volatility<-tsla_data|>summarise(volatility=sd(returns,na.rm=TRUE))
+tsla_volatility_pre<-tsla_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(tsla_volatility_pre=sd(returns,na.rm=TRUE))
+tsla_volatility_post<-tsla_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(tsla_volatility_post=sd(returns,na.rm=TRUE))
+tsla_volatility_post
+
+##Walmart
+wmt_volatility<-wmt_data|>summarise(volatility=sd(returns,na.rm=TRUE))
+wmt_volatility_pre<-wmt_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(wmt_volatility_pre=sd(returns,na.rm=TRUE))
+wmt_volatility_post<-wmt_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(wmt_volatility_post=sd(returns,na.rm=TRUE))
+wmt_volatility_post
+
+##Johnson & Johnson
+jnj_volatility<-jnj_data|>summarise(volatility=sd(returns,na.rm=TRUE))
+jnj_volatility_pre<-jnj_data|>filter(date<="2025-04-01",date>="2025-03-02")|>summarise(jnj_volatility_pre=sd(returns,na.rm=TRUE))
+jnj_volatility_post<-jnj_data|>filter(date<="2025-05-02",date>="2025-04-03")|>summarise(jnj_volatility_post=sd(returns,na.rm=TRUE))
+jnj_volatility_post
+
+###3-Day Rolling Volatility
+
+##Nvidia
+nvda_data<-nvda_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+nvda_data
+
+##Amazon
+amzn_data<-amzn_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+amzn_data
+
+##Berkshire Hathaway
+brkb_data<-brkb_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+brkb_data
+
+##Tesla
+tsla_data<-tsla_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+tsla_data
+
+##Walmart
+wmt_data<-wmt_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+wmt_data
+
+##Johnson & Johnson
+jnj_data<-jnj_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+jnj_data
+```
