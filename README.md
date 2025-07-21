@@ -14,6 +14,17 @@ For each event, stock data was loaded via the tidyquant library, which contains 
 
 It is important to note that the net effect of economic events is not of interest to be analyzed in this project. The main emphasis is on the behaviours of stocks before and after the events, to compare and contrast. So while it can seem like some stocks have no net effect following an economic event, its behaviour in terms of variables such as volatility or mean return can certainly change.
 
+## Event Analyses
+
+Below are the analyses for each event of interest.
+
+[Liberation Day](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Liberation-Day)
+
+[Federal Reserve Interest Rate Hike June 15, 2022 Announcement](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Federal-Reserve-Rate-Hike-2022-Announcement)
+
+[Federal Reserve Interest Rate Hold December 13, 2023 Announcement](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Federal-Reserve-Interest-Rate-Hold-2023-Announcement)
+
+
 ## Exploratory Data Analysis Questions
 
 The following questions are of interest to be explored throughout the entire project. These questions were answered at the end of all data analysis and the main purpose was to summarise important findings.
@@ -50,5 +61,4 @@ The Federal Reserve Interest Rate Hold on December 13, 2023 was not analyzed in 
 
 This project has put more emphasis on the individual events themselves compared to external factors that may have influenced stock prices concurrently, which weakens the ability to attribute certain changes in variables solely to the event of interest. For example, in the event of the Federal Reserve rate hike, there was great uncertainty introduced a few days prior when high inflation rates were announced. If such event did not occur, would the volatility still have declined following the announcement? A week after Liberation Day, a 90-day pause on tariffs was announced. Though the time series still showed staunch price dips even after a rebound, in the absence of the tariff pause, would prices continue to plummet? A further in-depth analysis is required in order to verify the analysis made in this prokect. The goal of this project was to simply analyze stock behaviours before and after critical economic events and make suggestions and inferences, as opposed to emphasizing impacts of all details and events that could have also made great impacts. For drawdown and recovery time, there were no specific criteria used to select reference points for local maximums and were determined based on manual inspection.
 
-The main page of this project can be found [here](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-P-500-Data/)
 
