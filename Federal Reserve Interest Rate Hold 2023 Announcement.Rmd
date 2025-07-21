@@ -1,5 +1,5 @@
 ---
-title: "Federal Reserve Interest Rate Hold Angnouncement"
+title: "Federal Reserve Interest Rate Hold Announcement"
 output: html_document
 date: "2025-07-16"
 ---
@@ -65,7 +65,7 @@ jnj_data
 
 Generally, all stocks experienced higher prices after the interest rate hold compared to before it. This observation makes sense as the Federal Reserve's decision to hold interest rates may indicate that the inflation target is being reached. Lower interest rates will encourage more borrowing of money, which gives consumers more spending power. As a result, companies have more opportunities to make more profit. When the Federal Reserve first began raising interest rates in 2022, its incentive was to counter inflation. By holding interest rates, the Federal Reserve may be closer to reaching its targets, thus being able to have a calmer approach moving forward. Indications of an improving economy and giving consumers more spending power will ease the uncertainty on markets, allowing for their valuations to improve. Tesla was the only stock to face declining prices one month following the interest rate hold. This may be attributed to the company missing its expected earnings and price cuts due to increased competition from China. As such, the company still faces profit risks despite the Federal Reserve's decision.
 
-## Cross Validation for Time Series Trend Decomposition for Federal Reserve 2022 0.75% Rate Hike
+## Cross Validation for Time Series Trend Decomposition for Federal Reserve Interest Rate Hold December 13, 2023
 
 Cross-validation is performed to select an optimal span, the proportion of data used to smooth local regressions, for the trend decomposition. The timeslice method respects the ordering of the data by date, which matters in the context of time series analysis. For each stock, cross validation is performed for each span starting from 0.1, incrementing by 0.01, and up to 0.9. Spans below 0.01 and above 0.9 are omitted to avoid the possibility of overfitting and underfitting with extreme span values. In this analysis, a 5-fold cross-validation is performed, given the 42 trading days used. The data for each stock are split into training and testing sets to first fit an LOESS model to estimate the trend of stock price, then assess the accuracy using the testing set. Initially, the first 33 trading days are included in the first training set, and then the training window shifts forward by one day for the next training set, maintaining the 33-day window. The testing set will consist of the 5 trading days after, which the model estimates the trend of stock prices for those days. For each span, the root mean squared error is calculated  for each fold and the optimal span is selected by choosing the span that has the lowest average root mean squared error. 
 
