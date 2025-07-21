@@ -1,5 +1,5 @@
 ---
-title: "Federal Reserve Interest Rate Hold Announcement"
+title: "Federal Reserve Interest Rate Hold Angnouncement"
 output: html_document
 date: "2025-07-16"
 ---
