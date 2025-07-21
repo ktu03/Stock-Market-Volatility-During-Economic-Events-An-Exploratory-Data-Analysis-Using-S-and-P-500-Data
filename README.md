@@ -14,6 +14,17 @@ For each event, stock data was loaded via the tidyquant library, which contains 
 
 It is important to note that the net effect of economic events is not of interest to be analyzed in this project. The main emphasis is on the behaviours of stocks before and after the events, to compare and contrast. So while it can seem like some stocks have no net effect following an economic event, its behaviour in terms of variables such as volatility or mean return can certainly change.
 
+## Event Analyses
+
+Below are the analyses for each event of interest.
+
+[Liberation Day](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Liberation-Day)
+
+[Federal Reserve Interest Rate Hike June 15, 2022 Announcement](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Federal-Reserve-Rate-Hike-2022-Announcement)
+
+[Federal Reserve Interest Rate Hold December 13, 2023 Announcement](https://ktu03.github.io/Stock-Market-Volatility-During-Economic-Events-An-Exploratory-Data-Analysis-Using-S-and-P-500-Data/Federal-Reserve-Interest-Rate-Hold-2023-Announcement)
+
+
 ## Exploratory Data Analysis Questions
 
 The following questions are of interest to be explored throughout the entire project. These questions were answered at the end of all data analysis and the main purpose was to summarise important findings.
