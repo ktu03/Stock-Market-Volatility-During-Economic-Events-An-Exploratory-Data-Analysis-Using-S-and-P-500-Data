@@ -4,18 +4,15 @@ output: html_document
 date: "2025-07-16"
 ---
 
-On December 13, 2023, the Federal Reserve announced its third consecutive interest rate hold and also indicated the possibilities of interest rate cuts in 2024. This event reduced economic uncertainty and gave the potential for market valuations to improve.
+On December 13, 2023, the Federal Reserve announced its third consecutive interest rate hold and also indicated the possibilities of interest rate cuts in 2024. This event gave the potential for market valuations to improve.
 
 ```{r}
 library("tidyquant")
-library("forecast")
 library("zoo")
 library("ggplot2")
 library("stats")
 library("tidyverse")
-library("tidymodels")
 library("caret")
-library('dplyr')
 library("corrplot")
 ```
 
@@ -29,7 +26,6 @@ nvda_data<-tq_get("NVDA",get="stock.prices",complete_cases=TRUE,from="2023-11-13
 xts_nvda<-xts(nvda_data$adjusted,order.by=nvda_data$date)
 plot(xts_nvda,main="Nvidia Time Series Before/After COVID-19 Vaccine Announcement",xlab="Date",ylab="Stock Price")
 nvda_data
-
 
 ##Amazon
 amzn_data<-tq_get("AMZN",get="stock.prices",complete_cases=TRUE,from="2023-11-13",to="2024-01-13")
@@ -61,13 +57,14 @@ xts_jnj<-xts(jnj_data$adjusted,order.by=tsla_data$date)
 plot(xts_jnj,main="Johnson & Johnson Time Series Before/After COVID-19 Vaccine Announcement",xlab="Date",ylab="Stock Price")
 jnj_data
 ```
+
 ## Analysis of Time Series' for Federal Reserve Interest Rate Hold December 13, 2023
 
-Generally, all stocks experienced higher prices after the interest rate hold compared to before it. This observation makes sense as the Federal Reserve's decision to hold interest rates may indicate that the inflation target is being reached. Lower interest rates will encourage more borrowing of money, which gives consumers more spending power. As a result, companies have more opportunities to make more profit. When the Federal Reserve first began raising interest rates in 2022, its incentive was to counter inflation. By holding interest rates, the Federal Reserve may be closer to reaching its targets, thus being able to have a calmer approach moving forward. Indications of an improving economy and giving consumers more spending power will ease the uncertainty on markets, allowing for their valuations to improve. Tesla was the only stock to face declining prices one month following the interest rate hold. This may be attributed to the company missing its expected earnings and price cuts due to increased competition from China. As such, the company still faces profit risks despite the Federal Reserve's decision.
+Generally, all stocks experienced higher prices after the interest rate hold announcement compared to before it. This observation is consistent with the Federal Reserve's notion that holding interest rates may indicate that the inflation target is being reached. Lower interest rates will encourage more borrowing, which gives consumers more spending power. As a result, companies have more opportunities to make more profit. When the Federal Reserve first began raising interest rates in 2022, its incentive was to counter inflation. By holding interest rates, the Federal Reserve may be closer to reaching its targets, thus being able to have a calmer approach moving forward. Indications of an improving economy and giving consumers more spending power will ease the uncertainty in markets, allowing for their valuations to improve. Tesla was the only stock to face declining prices one month following the interest rate hold. This may be attributed to the company missing its expected earnings and price cuts, possibly due to increased competition from China. As such, the company still faces profit risks despite the Federal Reserve's decision.
 
 ## Cross Validation for Time Series Trend Decomposition for Federal Reserve Interest Rate Hold December 13, 2023
 
-Cross-validation is performed to select an optimal span, the proportion of data used to smooth local regressions, for the trend decomposition. The timeslice method respects the ordering of the data by date, which matters in the context of time series analysis. For each stock, cross validation is performed for each span starting from 0.1, incrementing by 0.01, and up to 0.9. Spans below 0.01 and above 0.9 are omitted to avoid the possibility of overfitting and underfitting with extreme span values. In this analysis, a 5-fold cross-validation is performed, given the 42 trading days used. The data for each stock are split into training and testing sets to first fit an LOESS model to estimate the trend of stock price, then assess the accuracy using the testing set. Initially, the first 33 trading days are included in the first training set, and then the training window shifts forward by one day for the next training set, maintaining the 33-day window. The testing set will consist of the 5 trading days after, which the model estimates the trend of stock prices for those days. For each span, the root mean squared error is calculated  for each fold and the optimal span is selected by choosing the span that has the lowest average root mean squared error. 
+Cross-validation is performed to select an optimal span, the proportion of data used to smooth local regressions, for the trend decomposition. The timeslice method respects the ordering of the data by date, which matters in the context of time series analysis. For each stock, cross-validation is performed for each span starting from 0.1, incrementing by 0.01, and up to 0.9. In this analysis, a 5-fold rolling origin cross-validation is performed, given the 42 trading days used. The data for each stock are split into training and testing sets to first fit an LOESS (Locally Estimated Scatterplot Smoothing) model to estimate the trend of the stock price, then assess the accuracy using the testing set. Initially, the first 33 trading days are included in the first training set, and then the training window shifts forward by one day for the next training set, maintaining the 33-day window. The testing set will consist of the 5 trading days after, during which the model estimates the trend of the stock prices for those days. For each span, the root mean squared error is calculated for each fold, and the optimal span is selected by choosing the span that has the lowest average root mean squared error.
 
 ```{r}
 
@@ -77,43 +74,50 @@ set.seed(100)
 nvda_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 nvda_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 nvda_data$date_times<-as.numeric(nvda_data$date)
-nvda_cv<-suppressWarnings(train(adjusted~date_times,data=nvda_data,method="gamLoess",tuneGrid=nvda_grid_vals,trControl=nvda_train))
+nvda_cv<-suppressWarnings(train(adjusted~date_times,data=nvda_data,method="gamLoess",tuneGrid=nvda_grid_vals,
+                                trControl=nvda_train))
 nvda_optimal_span<-nvda_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
 
 ##Amazon
 amzn_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 amzn_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 amzn_data$date_times<-as.numeric(amzn_data$date)
-amzn_cv<-suppressWarnings(train(adjusted~date_times,data=amzn_data,method="gamLoess",tuneGrid=amzn_grid_vals,trControl=amzn_train))
+amzn_cv<-suppressWarnings(train(adjusted~date_times,data=amzn_data,method="gamLoess",tuneGrid=amzn_grid_vals,
+                                trControl=amzn_train))
 amzn_optimal_span<-amzn_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
 
 ##Berkshire Hathaway
 brkb_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 brkb_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 brkb_data$date_times<-as.numeric(brkb_data$date)
-brkb_cv<-suppressWarnings(train(adjusted~date_times,data=brkb_data,method="gamLoess",tuneGrid=brkb_grid_vals,trControl=brkb_train))
+brkb_cv<-suppressWarnings(train(adjusted~date_times,data=brkb_data,method="gamLoess",tuneGrid=brkb_grid_vals,
+                                trControl=brkb_train))
 brkb_optimal_span<-brkb_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
 
 ##Tesla
 tsla_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 tsla_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 tsla_data$date_times<-as.numeric(tsla_data$date)
-tsla_cv<-suppressWarnings(train(adjusted~date_times,data=tsla_data,method="gamLoess",tuneGrid=tsla_grid_vals,trControl=tsla_train))
+tsla_cv<-suppressWarnings(train(adjusted~date_times,data=tsla_data,method="gamLoess",tuneGrid=tsla_grid_vals,
+                                trControl=tsla_train))
 tsla_optimal_span<-tsla_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
 
 ##Walmart
 wmt_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 wmt_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 wmt_data$date_times<-as.numeric(wmt_data$date)
-wmt_cv<-suppressWarnings(train(adjusted~date_times,data=wmt_data,method="gamLoess",tuneGrid=wmt_grid_vals,trControl=wmt_train))
+wmt_cv<-suppressWarnings(train(adjusted~date_times,data=wmt_data,method="gamLoess",tuneGrid=wmt_grid_vals,
+                               trControl=wmt_train))
 wmt_optimal_span<-wmt_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
 
 ##Johnson & Johnson
 jnj_train<-trainControl(method="timeslice",initialWindow=33,horizon=5)
 jnj_grid_vals<-expand.grid(span=seq(from=0.1,to=0.9,by=0.01),degree=1)
 jnj_data$date_times<-as.numeric(jnj_data$date)
-jnj_cv<-suppressWarnings(train(adjusted~date_times,data=jnj_data,method="gamLoess",tuneGrid=jnj_grid_vals,trControl=jnj_train))
+jnj_cv<-suppressWarnings(train(adjusted~date_times,data=jnj_data,method="gamLoess",tuneGrid=jnj_grid_vals,
+                               trControl=jnj_train))
 jnj_optimal_span<-jnj_cv$results|>slice_min(RMSE,with_ties=FALSE)|>pull(span)
+
 nvda_optimal_span
 amzn_optimal_span
 brkb_optimal_span
@@ -127,12 +131,11 @@ jnj_optimal_span
 Trend and Residual decompositions are created for the Time Series for the Federal Reserve interest rate hold of the 6 S&P 500 stocks using the optimal span calculated for each stock. Seasonal decompositions were not included as such decision does not occur on seasonal intervals.
 
 ```{r}
-
-
 ##Nvidia 
 loess_nvda<-loess(adjusted~as.numeric(date),data=nvda_data,span=nvda_optimal_span)
 smooth_nvda<-predict(loess_nvda)
-trend_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_nvda),color="red",linewidth=1.4)+labs(title="NVDA Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_nvda),color="red",linewidth=1.4) +
+                                   labs(title="NVDA Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
 trend_decomp_nvda_plot
 nvda_data$residual_decomp<-residuals(loess_nvda)
 residual_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="NVDA Residual Decomposition",x="Date",y="Residual")+theme_minimal()
@@ -142,41 +145,56 @@ nvda_data
 ##Amazon
 loess_amzn<-loess(adjusted~as.numeric(date),data=amzn_data,span=amzn_optimal_span)
 smooth_amzn<-predict(loess_amzn)
-trend_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_amzn),color="red",linewidth=1.4)+labs(title="AMZN Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_amzn),color="red",linewidth=1.4)+
+                                   labs(title="AMZN Trend Decomposition",x="Date",y="Stock Price")+
+                                   theme_minimal()
 trend_decomp_amzn_plot
 amzn_data$residual_decomp<-residuals(loess_amzn)
-residual_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="AMZN Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+
+                                      labs(title="AMZN Residual Decomposition",x="Date",y="Residual")+
+                                      theme_minimal()
 residual_decomp_amzn_plot
 amzn_data
 
 ##Berkshire Hathaway
 loess_brkb<-loess(adjusted~as.numeric(date),data=brkb_data,span=brkb_optimal_span)
 smooth_brkb<-predict(loess_brkb)
-trend_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_brkb),color="red",linewidth=1.4)+labs(title="BRKB Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_brkb),color="red",linewidth=1.4)+
+                                   labs(title="BRKB Trend Decomposition",x="Date",y="Stock Price")+
+                                   theme_minimal()
 trend_decomp_brkb_plot
 brkb_data$residual_decomp<-residuals(loess_brkb)
-residual_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="BRKB Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+
+                                      labs(title="BRKB Residual Decomposition",x="Date",y="Residual")+
+                                      theme_minimal()
 residual_decomp_brkb_plot
 brkb_data
 
 ##Tesla
 loess_tsla<-loess(adjusted~as.numeric(date),data=tsla_data,span=tsla_optimal_span)
 smooth_tsla<-predict(loess_tsla)
-trend_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_tsla),color="red",linewidth=1.4)+labs(title="TSLA Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_tsla),color="red",linewidth=1.4)+
+                                   labs(title="TSLA Trend Decomposition",x="Date",y="Stock Price")+
+                                   theme_minimal()
 trend_decomp_tsla_plot
 tsla_data$residual_decomp<-residuals(loess_tsla)
-residual_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="TSLA Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+
+                                      labs(title="TSLA Residual Decomposition",x="Date",y="Residual")+
+                                      theme_minimal()
 residual_decomp_tsla_plot
 tsla_data
 
 ##Walmart
-
 loess_wmt<-loess(adjusted~as.numeric(date),data=wmt_data,span=wmt_optimal_span)
 smooth_wmt<-predict(loess_wmt)
-trend_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_wmt),color="red",linewidth=1.4)+labs(title="WMT Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_wmt),color="red",linewidth=1.4)+
+                                 labs(title="WMT Trend Decomposition",x="Date",y="Stock Price")+
+                                 theme_minimal()
 trend_decomp_wmt_plot
 wmt_data$residual_decomp<-residuals(loess_wmt)
-residual_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="WMT Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+
+                                    labs(title="WMT Residual Decomposition",x="Date",y="Residual")+
+                                    theme_minimal()
 residual_decomp_wmt_plot
 wmt_data
 
@@ -184,18 +202,21 @@ wmt_data
 
 loess_jnj<-loess(adjusted~as.numeric(date),data=jnj_data,span=jnj_optimal_span)
 smooth_jnj<-predict(loess_jnj)
-trend_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_jnj),color="red",linewidth=1.4)+labs(title="JNJ Trend Decomposition",x="Date",y="Stock Price")+theme_minimal()
+trend_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_jnj),color="red",linewidth=1.4)+
+                                 labs(title="JNJ Trend Decomposition",x="Date",y="Stock Price")+
+                                 theme_minimal()
 trend_decomp_jnj_plot
 jnj_data$residual_decomp<-residuals(loess_jnj)
-residual_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+labs(title="JNJ Residual Decomposition",x="Date",y="Residual")+theme_minimal()
+residual_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date,y=residual_decomp))+geom_line()+
+                                    labs(title="JNJ Residual Decomposition",x="Date",y="Residual")+
+                                    theme_minimal()
 residual_decomp_jnj_plot
 jnj_data
-
 ```
 
 ## Analysis of Trend and Residual Decompositions
 
-As previously touched on in the analysis for the time series', it is clearer based on the trends that Tesla is seeing a staunch decline in prices. Though Amazon also faced a decline in prices during early January of 2024, its prices still trend above the prices trended prior to the Federal Reserve decision. Excluding Tesla, all stocks are generally increasing in price following the decision. This may indicate that the markets are now beginning to recover from the inflationary/affordability crisis. According to Statista, the inflation rate peaked at 9.1% in June 2022 and fell to 3.4% in December 2023. These figures align exactly with the Federal Reserve's decision making. On June 15, 2022, interest rates were raised with the highest magnitude in over 40 years, and in December 2023, interest rates are being held as inflation has cooled down by a lot. With lower inflation, consumers will be less worried about affordability, which gives more profit opportunity to markets. Nvidia, Amazon, Berkshire Hathaway, and Tesla experienced more noisy residuals with frequent large swings. This observation may be attributed to their time series, which exhibited a lot of alternations between increasing and decreasing in stock prices, even though Nvidia, Amazon, and Berkshire Hathaway were able to trend upwards in price.
+As previously touched on in the analysis for the time series', it is clearer based on the trends that Tesla is exhibiting a staunch decline in prices. Though Amazon also faced a decline in prices during early January of 2024, its prices still remain above the levels observed prior to the Federal Reserve decision. Excluding Tesla, all stocks are generally increasing in price following the decision. This may indicate that the markets are now beginning to recover from the inflationary/affordability crisis. According to Statista, the inflation rate peaked at 9.1% in June 2022 and fell to 3.4% in December 2023. These figures coincide with the timing of the Federal Reserve's decisions. On June 15, 2022, interest rates were raised with the highest magnitude in over 40 years, and in December 2023, interest rates are being held as inflation has cooled down substantially. With lower inflation, consumers will be less worried about affordability, which gives more profit opportunities to markets. Nvidia, Amazon, Berkshire Hathaway, and Tesla experienced more noisy residuals with higher variability in residuals. This observation may be attributed to their time series, which exhibited a lot of alternations between increases and decreases in stock prices, even though Nvidia, Amazon, and Berkshire Hathaway were able to trend upwards in price.
 
 ## Returns, Mean Returns, Volatility, and 3-Day Rolling Volatility
 
@@ -205,192 +226,401 @@ Calculating returns, mean returns, volatility, and 3-day rolling volatility to c
 ###Returns, Mean Returns
 
 ##Nvidia
-nvda_data<-nvda_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-nvda_mean_return_pre<-nvda_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(nvda_mean_return_pre = mean(returns,na.rm=TRUE))
-nvda_mean_return_post<-nvda_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(nvda_mean_return_post = mean(returns,na.rm=TRUE))
+nvda_data<-nvda_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                             mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+nvda_mean_return_pre<-nvda_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                 summarise(nvda_mean_return_pre = mean(returns,na.rm=TRUE))
+nvda_mean_return_post<-nvda_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                  summarise(nvda_mean_return_post = mean(returns,na.rm=TRUE))
+nvda_data
+nvda_mean_return_pre
+nvda_mean_return_post
 
 ##Amazon
-amzn_data<-amzn_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-amzn_mean_return_pre<-amzn_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(amzn_mean_return_pre = mean(returns,na.rm=TRUE))
-amzn_mean_return_post<-amzn_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(amzn_mean_return_post = mean(returns,na.rm=TRUE))
+amzn_data<-amzn_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                             mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+amzn_mean_return_pre<-amzn_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                 summarise(amzn_mean_return_pre = mean(returns,na.rm=TRUE))
+amzn_mean_return_post<-amzn_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                  summarise(amzn_mean_return_post = mean(returns,na.rm=TRUE))
+amzn_data
+amzn_mean_return_pre
+amzn_mean_return_post
 
 ##Berkshire Hathaway
-brkb_data<-brkb_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-brkb_mean_return_pre<-brkb_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(brkb_mean_return_pre=mean(returns,na.rm=TRUE))
-brkb_mean_return_post<-brkb_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(brkb_mean_return_post=mean(returns,na.rm=TRUE))
+brkb_data<-brkb_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                             mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+brkb_mean_return_pre<-brkb_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                 summarise(brkb_mean_return_pre=mean(returns,na.rm=TRUE))
+brkb_mean_return_post<-brkb_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                  summarise(brkb_mean_return_post=mean(returns,na.rm=TRUE))
+brkb_data
+brkb_mean_return_pre
+brkb_mean_return_post
 
 ##Tesla
-tsla_data<-tsla_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-tsla_mean_return_pre<-tsla_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(tsla_mean_return_pre=mean(returns,na.rm=TRUE))
-tsla_mean_return_post<-tsla_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(tsla_mean_return_post=mean(returns,na.rm=TRUE))
+tsla_data<-tsla_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                             mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+tsla_mean_return_pre<-tsla_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                 summarise(tsla_mean_return_pre=mean(returns,na.rm=TRUE))
+tsla_mean_return_post<-tsla_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                  summarise(tsla_mean_return_post=mean(returns,na.rm=TRUE))
+tsla_data
+tsla_mean_return_pre
+tsla_mean_return_post
 
 ##Walmart
-wmt_data<-wmt_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-wmt_mean_return_pre<-wmt_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(wmt_mean_return_pre=mean(returns,na.rm=TRUE))
-wmt_mean_return_post<-wmt_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(wmt_mean_return_post=mean(returns,na.rm=TRUE))
+wmt_data<-wmt_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                           mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+wmt_mean_return_pre<-wmt_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                               summarise(wmt_mean_return_pre=mean(returns,na.rm=TRUE))
+wmt_mean_return_post<-wmt_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                summarise(wmt_mean_return_post=mean(returns,na.rm=TRUE))
+wmt_data
+wmt_mean_return_pre
+wmt_mean_return_post
 
 ##Johnson & Johnson
-jnj_data<-jnj_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
-jnj_mean_return_pre<-jnj_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(jnj_mean_return_pre=mean(returns,na.rm=TRUE))
-jnj_mean_return_post<-jnj_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(jnj_mean_return_post=mean(returns,na.rm=TRUE))
+jnj_data<-jnj_data|>mutate(returns=(adjusted-lag(adjusted))/lag(adjusted),
+                           mean_returns=if_else(is.na(returns),NA_real_,cummean(replace_na(returns,0))))
+jnj_mean_return_pre<-jnj_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                               summarise(jnj_mean_return_pre=mean(returns,na.rm=TRUE))
+jnj_mean_return_post<-jnj_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                summarise(jnj_mean_return_post=mean(returns,na.rm=TRUE))
+jnj_data
+jnj_mean_return_pre
+jnj_mean_return_post
 
 ###Volatility
 
 ##Nvidia
 nvda_volatility<-nvda_data|>summarise(nvda_volatility=sd(returns,na.rm=TRUE))
-nvda_volatility_pre<-nvda_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(nvda_volatility_pre=sd(returns,na.rm=TRUE))
-nvda_volatility_post<-nvda_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(nvda_volatility_post=sd(returns,na.rm=TRUE))
+nvda_volatility_pre<-nvda_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                summarise(nvda_volatility_pre=sd(returns,na.rm=TRUE))
+nvda_volatility_post<-nvda_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                 summarise(nvda_volatility_post=sd(returns,na.rm=TRUE))
+nvda_volatility
+nvda_volatility_pre
+nvda_volatility_post
 
 ##Amazon
 amzn_volatility<-amzn_data|>summarise(amzn_volatility=sd(returns,na.rm=TRUE))
-amzn_volatility_pre<-amzn_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(amzn_volatility_pre=sd(returns,na.rm=TRUE))
-amzn_volatility_post<-amzn_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(amzn_volatility_post=sd(returns,na.rm=TRUE))
+amzn_volatility_pre<-amzn_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                summarise(amzn_volatility_pre=sd(returns,na.rm=TRUE))
+amzn_volatility_post<-amzn_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                 summarise(amzn_volatility_post=sd(returns,na.rm=TRUE))
+amzn_volatility
+amzn_volatility_pre
+amzn_volatility_post
 
 ##Berkshire Hathaway
 brkb_volatility<-brkb_data|>summarise(brkb_volatility=sd(returns,na.rm=TRUE))
-brkb_volatility_pre<-brkb_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(brkb_volatility_pre=sd(returns,na.rm=TRUE))
-brkb_volatility_post<-brkb_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(brkb_volatility_post=sd(returns,na.rm=TRUE))
+brkb_volatility_pre<-brkb_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                summarise(brkb_volatility_pre=sd(returns,na.rm=TRUE))
+brkb_volatility_post<-brkb_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                 summarise(brkb_volatility_post=sd(returns,na.rm=TRUE))
+brkb_volatility
+brkb_volatility_pre
+brkb_volatility_post
 
 ##Tesla
 tsla_volatility<-tsla_data|>summarise(volatility=sd(returns,na.rm=TRUE))
-tsla_volatility_pre<-tsla_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(tsla_volatility_pre=sd(returns,na.rm=TRUE))
-tsla_volatility_post<-tsla_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(tsla_volatility_post=sd(returns,na.rm=TRUE))
+tsla_volatility_pre<-tsla_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                summarise(tsla_volatility_pre=sd(returns,na.rm=TRUE))
+tsla_volatility_post<-tsla_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                 summarise(tsla_volatility_post=sd(returns,na.rm=TRUE))
+tsla_volatility
+tsla_volatility_pre
+tsla_volatility_post
 
 ##Walmart
 wmt_volatility<-wmt_data|>summarise(volatility=sd(returns,na.rm=TRUE))
-wmt_volatility_pre<-wmt_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(wmt_volatility_pre=sd(returns,na.rm=TRUE))
-wmt_volatility_post<-wmt_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(wmt_volatility_post=sd(returns,na.rm=TRUE))
+wmt_volatility_pre<-wmt_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                              summarise(wmt_volatility_pre=sd(returns,na.rm=TRUE))
+wmt_volatility_post<-wmt_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                               summarise(wmt_volatility_post=sd(returns,na.rm=TRUE))
+wmt_volatility
+wmt_volatility_pre
+wmt_volatility_post
 
 ##Johnson & Johnson
 jnj_volatility<-jnj_data|>summarise(volatility=sd(returns,na.rm=TRUE))
-jnj_volatility_pre<-jnj_data|>filter(date<="2023-12-12",date>="2023-11-13")|>summarise(jnj_volatility_pre=sd(returns,na.rm=TRUE))
-jnj_volatility_post<-jnj_data|>filter(date>="2023-12-14",date<="2024-01-13")|>summarise(jnj_volatility_post=sd(returns,na.rm=TRUE))
+jnj_volatility_pre<-jnj_data|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                              summarise(jnj_volatility_pre=sd(returns,na.rm=TRUE))
+jnj_volatility_post<-jnj_data|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                               summarise(jnj_volatility_post=sd(returns,na.rm=TRUE))
+jnj_volatility
+jnj_volatility_pre
+jnj_volatility_post
 
 ###3-Day Rolling Volatility
 
 ##Nvidia
-nvda_data<-nvda_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+nvda_data<-nvda_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                    FUN=sd,na.rm=TRUE,
+                                                                    fill=NA,align="right"))
 nvda_data
+
 ##Amazon
-amzn_data<-amzn_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+amzn_data<-amzn_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                    FUN=sd,na.rm=TRUE,
+                                                                    fill=NA,align="right"))
 amzn_data
+
 ##Berkshire Hathaway
-brkb_data<-brkb_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+brkb_data<-brkb_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                    FUN=sd,na.rm=TRUE,
+                                                                    fill=NA,align="right"))
 brkb_data
+
 ##Tesla
-tsla_data<-tsla_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+tsla_data<-tsla_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                    FUN=sd,na.rm=TRUE,
+                                                                    fill=NA,align="right"))
 tsla_data
+
 ##Walmart
-wmt_data<-wmt_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+wmt_data<-wmt_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                  FUN=sd,na.rm=TRUE,
+                                                                  fill=NA,align="right"))
 wmt_data
+
 ##Johnson & Johnson
-jnj_data<-jnj_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,FUN=sd,na.rm=TRUE,fill=NA,align="right"))
+jnj_data<-jnj_data|>mutate(three_day_rolling_volatility=rollapply(returns,width=3,
+                                                                  FUN=sd,na.rm=TRUE,
+                                                                  fill=NA,align="right"))
 jnj_data
 ```
 
 ## Analysis of Returns, Mean Returns, Volatility, and 3-Day Rolling Volatility
 
-With the exceptions of Berkshire Hathaway and Tesla, all stocks experienced an increase in mean returns after the Federal Reserve decision. Despite having an increase in trend, Berkshire Hathaway's stock prices faced more frequent turbulent alternations between increasing and decreasing stock prices, which may be responsible for its lower mean return. However, over fixed periods, stock prices that increase slowly over time can have a lower mean return than volatile stocks that are declining in price but have larger increases at times. As previously noted, Tesla has experienced its own company conflicts, which may be responsible for its decline in mean return. Furthermore, its time series and trend shows a clear indication of an overall decline in stock prices. Unlike all other stocks, Johnson & Johnson experienced a more consistent increase in stock prices with less turbulent declines throughout the entire 42 trading days. Despite that, its prices rised at slower rates after the Federal Reserve decision, which may be responsible for its decline in mean return.
+With the exceptions of Berkshire Hathaway and Tesla, all stocks experienced an increase in mean returns after the Federal Reserve decision. Despite having an increase in trend, Berkshire Hathaway's stock prices faced more frequent turbulent alternations between increasing and decreasing stock prices, which may be responsible for its lower mean return. However, over fixed periods, stock prices that increase slowly over time can have a lower mean return than volatile stocks that are declining in price but have larger increases at times. As previously noted, Tesla has experienced its own company conflicts, which may be responsible for its decline in mean return. Furthermore, its time series and trend show a clear indication of an overall decline in stock prices. Unlike all other stocks, Johnson & Johnson experienced a more consistent increase in stock prices with fewer large declines throughout the entire 42 trading days. Despite that, its prices rose at slower rates after the Federal Reserve decision, which may be responsible for its decline in mean return.
 
-With the exceptions of Walmart, and Johnson & Johnson, all other stocks exhibited an increase in volatility. This is very distinct from the common belief that when markets recover and companies can expect more profit, stocks should be less volatile as there is less uncertainty. However, the initial price increases from previously lower prices can contribute to higher volatility. Additionally, markets also need time to stabilize from the sudden change in economic conditions, even if it is positive. Therefore, volatility may increase despite positive economic signs. In this analysis, only 1 month after the Federal Reserve decision is analyzed, which may not be enough time for markets to fully stabilize.
+Except Walmart and Johnson & Johnson, all other stocks exhibited an increase in volatility. This is very distinct from the common belief that when markets recover and companies can expect more profit, stocks should be less volatile, as there is less uncertainty. However, the initial price increases from previously lower prices can contribute to higher volatility. Additionally, markets also need time to stabilize from the sudden change in economic conditions, even if it is positive. Therefore, volatility may increase despite positive economic signs. In this analysis, only 1 month after the Federal Reserve decision is analyzed, which may not be enough time for markets to fully stabilize.
 
-With the exception of Nvidia, all stocks experienced a net increase in 3-day rolling volatility following the day of the Federal Reserve decision, which aligns with the overall increase in volatility following the event.
+Except for Nvidia, all stocks experienced a net increase in 3-day rolling volatility following the day of the Federal Reserve decision, which aligns with the overall increase in volatility following the event.
 
 ## Correlation Heatmaps
 
 Correlation heatmaps to compare correlation of returns, 3-day rolling volatilities, and residuals amongst stocks.
 
 ```{r}
-
 ##Returns
 
-merged_returns<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>inner_join(jnj_data,by='date',suffix=c(".wmt", ".jnj"))|>select(date,returns.nvda,returns.amzn,returns.brkb,returns.tsla,returns.wmt,returns.jnj)|>rename(NVDA=returns.nvda,AMZN=returns.amzn,BRKB=returns.brkb,TSLA=returns.tsla,WMT=returns.wmt,JNJ=returns.jnj)
-returns_correlations <- merged_returns|>select(-date)|>cor(use="complete.obs")
+merged_returns<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>
+                inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>
+                inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>
+                inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>
+                inner_join(jnj_data,by='date',suffix=c(".wmt",".jnj"))|>
+                select(date,returns.nvda,returns.amzn,returns.brkb,returns.tsla,returns.wmt,returns.jnj)|>
+                rename(NVDA=returns.nvda,AMZN=returns.amzn,BRKB=returns.brkb,TSLA=returns.tsla,
+                       WMT=returns.wmt,JNJ=returns.jnj)
+returns_correlations<-merged_returns|>select(-date)|>cor(use="complete.obs")
 returns_corr_heatmap<-returns_correlations|>corrplot(method='color',main="Return")
 
 ##3-Day Rolling Volatilities 
-merged_rolling_volatilities<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>inner_join(jnj_data,by='date',suffix=c(".wmt", ".jnj"))|>select(date,three_day_rolling_volatility.nvda,three_day_rolling_volatility.amzn,three_day_rolling_volatility.brkb,three_day_rolling_volatility.tsla,three_day_rolling_volatility.wmt,three_day_rolling_volatility.jnj)|>rename(NVDA=three_day_rolling_volatility.nvda,AMZN=three_day_rolling_volatility.amzn,BRKB=three_day_rolling_volatility.brkb,TSLA=three_day_rolling_volatility.tsla,WMT=three_day_rolling_volatility.wmt,JNJ=three_day_rolling_volatility.jnj)
-rolling_volatilities_correlations <- merged_rolling_volatilities|>select(-date)|>cor(use="complete.obs")
-rolling_volatilities_corr_heatmap<-rolling_volatilities_correlations|>corrplot(method='color',main="3-Day Rolling Volatility")
+merged_rolling_volatilities<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>
+                             inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>
+                             inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>
+                             inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>
+                             inner_join(jnj_data,by='date',suffix=c(".wmt",".jnj"))|>
+                             select(date,three_day_rolling_volatility.nvda,three_day_rolling_volatility.amzn,
+                                    three_day_rolling_volatility.brkb,three_day_rolling_volatility.tsla,
+                                    three_day_rolling_volatility.wmt,three_day_rolling_volatility.jnj)|>
+                             rename(NVDA=three_day_rolling_volatility.nvda,
+                                    AMZN=three_day_rolling_volatility.amzn,
+                                    BRKB=three_day_rolling_volatility.brkb,
+                                    TSLA=three_day_rolling_volatility.tsla,
+                                    WMT=three_day_rolling_volatility.wmt,JNJ=three_day_rolling_volatility.jnj)
+rolling_volatilities_correlations<-merged_rolling_volatilities|>select(-date)|>cor(use="complete.obs")
+rolling_volatilities_corr_heatmap<-rolling_volatilities_correlations|>corrplot(method='color',
+                                                                               main="3-Day Rolling Volatility")
 
 ##Residuals
-merged_residuals<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>inner_join(jnj_data,by='date',suffix=c(".wmt", ".jnj"))|>select(date,residual_decomp.nvda,residual_decomp.amzn,residual_decomp.brkb,residual_decomp.tsla,residual_decomp.wmt,residual_decomp.jnj)|>rename(NVDA=residual_decomp.nvda,AMZN=residual_decomp.amzn,BRKB=residual_decomp.brkb,TSLA=residual_decomp.tsla,WMT=residual_decomp.wmt,JNJ=residual_decomp.jnj)
-residuals_correlations <- merged_residuals|>select(-date)|>cor(use="complete.obs")
+merged_residuals<-inner_join(nvda_data,amzn_data,by='date',suffix=c('.nvda','.amzn'))|>
+                  inner_join(brkb_data,by="date",suffix=c(".amzn",".brkb"))|>
+                  inner_join(tsla_data,by='date',suffix=c(".brkb", ".tsla"))|>
+                  inner_join(wmt_data,by='date',suffix=c(".tsla", ".wmt"))|>
+                  inner_join(jnj_data,by='date',suffix=c(".wmt",".jnj"))|>
+                  select(date,residual_decomp.nvda,residual_decomp.amzn,residual_decomp.brkb,
+                         residual_decomp.tsla,residual_decomp.wmt,residual_decomp.jnj)|>
+                  rename(NVDA=residual_decomp.nvda,AMZN=residual_decomp.amzn,
+                         BRKB=residual_decomp.brkb,TSLA=residual_decomp.tsla,
+                         WMT=residual_decomp.wmt,JNJ=residual_decomp.jnj)
+residuals_correlations<-merged_residuals|>select(-date)|>cor(use="complete.obs")
 residuals_corr_heatmap<-residuals_correlations|>corrplot(method='color',main="Residuals")
-
 ```
 
 ## Analysis of Correlation Heatmaps
 
-Unlike the previous two events analyzed, the selected stocks are not well correlated with each other in the variables in the event of the Federal Reserve's decision to hold interest rates. This event was more focused on the influence of events that allow for economic certainty on markets, which may be a reason why the stocks are not well correlated with each other. Across the GICS sectors, stock prices might increase in different behaviours when recovering from economic uncertainty, but decline in similar behaviours when faced with economic uncertainty. From the events analyzed so far in this project, the events centred around economic uncertainty resulted in stocks more correlated with each other while the current event being analyzed, centred around reducing economic uncertainty, results in stocks less correlated with each other. Such phenomenon can be observed in the time series' as well, as stock price movements were less similar following the interest rate hold.
+Unlike the previous two events analyzed, the selected stocks are not well correlated with each other in terms of the variables in the event of the Federal Reserve's decision to hold interest rates. This event was more focused on the influence of events that allow for economic certainty on markets, which may be a reason why the stocks are not well correlated with each other. Across the GICS sectors, stock prices might increase in different behaviours when recovering from economic uncertainty, but decline in similar behaviours when faced with economic uncertainty. From the events analyzed so far in this project, the events centred around economic uncertainty resulted in stocks being more correlated with each other, while the current event being analyzed, centred around reducing economic uncertainty, results in stocks being less correlated with each other. Such a phenomenon can be observed in the time series as well, as stock price movements were less similar following the interest rate hold.
 
 ## Boxplots
 
 Boxplots showing the distrubution of returns, 3-day rolling volatilities, and residuals.
 
 ```{r}
-
-
 ##Returns
-
 returns<-merged_returns|>select(-date)|>pivot_longer (cols=everything(),names_to="Stock",values_to="Returns")
-returns_boxplot<-returns|>ggplot(aes(x=Stock,y=Returns))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Returns")
-returns_pre<-merged_returns|>filter(date<="2023-12-12",date>="2023-11-13")|>select(-date)|>pivot_longer(cols=everything() ,names_to="Stock",values_to="Returns")
-returns_pre_boxplot<-returns_pre|>ggplot(aes(x=Stock,y=Returns))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Returns")
-returns_post<-merged_returns|>filter(date>="2023-12-14",date<="2024-01-13")|>select(-date)|>pivot_longer(cols=everything(),names_to="Stock",values_to="Returns")
-returns_post_boxplot<-returns_post|>ggplot(aes(x=Stock,y=Returns))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Returns")
-
+returns_boxplot<-returns|>ggplot(aes(x=Stock,y=Returns))+geom_boxplot(outliers=TRUE,outlier.colour="red",
+                                                                      na.rm=TRUE)+labs(x="Stock",y="Returns")
+returns_pre<-merged_returns|>filter(date<="2023-12-12",date>="2023-11-13")|>select(-date)|>
+                             pivot_longer(cols=everything() ,names_to="Stock",values_to="Returns")
+returns_pre_boxplot<-returns_pre|>ggplot(aes(x=Stock,y=Returns))+geom_boxplot(outliers=TRUE,outlier.colour="red",
+                                                                              na.rm=TRUE) +
+                                  labs(x="Stock",y="Returns")
+returns_post<-merged_returns|>filter(date>="2023-12-14",date<="2024-01-13")|>select(-date)|>
+                              pivot_longer(cols=everything(),names_to="Stock",values_to="Returns")
+returns_post_boxplot<-returns_post|>ggplot(aes(x=Stock,y=Returns))+
+                                    geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                                    labs(x="Stock",y="Returns")
+returns_boxplot
+returns_pre_boxplot
+returns_post_boxplot
 
 ##3-Day Rolling Volatilities
-
-rolling_volatilities<-merged_rolling_volatilities|>select(-date)|>pivot_longer (cols=everything(),names_to="Stock",values_to="Three_Day_Rolling_Volatility")
-rolling_volatilities_boxplot<-rolling_volatilities|>ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="3-Day Rolling Volatility")
-rolling_volatilities_pre<-merged_rolling_volatilities|>filter(date<="2023-12-12",date>="2023-11-13")|>select(-date)|>pivot_longer(cols=everything() ,names_to="Stock",values_to="Three_Day_Rolling_Volatility")
-rolling_volatilities_pre_boxplot<-rolling_volatilities_pre|>ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="3-Day Rolling Volatility")
-rolling_volatilities_post<-merged_rolling_volatilities|>filter(date>="2023-12-14",date<="2024-01-13")|>select(-date)|>pivot_longer(cols=everything(),names_to="Stock",values_to="Three_Day_Rolling_Volatility")
-rolling_volatilities_post_boxplot<-rolling_volatilities_post|>ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="3-Day Rolling Volatility")
-
-#amzn_data|>filter(date<="2025-05-02",date>="2025-04-03")|>ggplot(aes(x=symbol,y=three_day_rolling_volatility))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)
+rolling_volatilities<-merged_rolling_volatilities|>
+                      select(-date)|>
+                      pivot_longer (cols=everything(),names_to="Stock",
+                                    values_to="Three_Day_Rolling_Volatility")
+rolling_volatilities_boxplot<-rolling_volatilities|>
+                              ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility)) +
+                              geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                              labs(x="Stock",y="3-Day Rolling Volatility")
+rolling_volatilities_pre<-merged_rolling_volatilities|>
+                          filter(date<="2023-12-12",date>="2023-11-13")|>
+                          select(-date)|>pivot_longer(cols=everything(),names_to="Stock",
+                                                      values_to="Three_Day_Rolling_Volatility")
+rolling_volatilities_pre_boxplot<-rolling_volatilities_pre|>
+                                  ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility)) +
+                                  geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                                  labs(x="Stock",y="3-Day Rolling Volatility")
+rolling_volatilities_post<-merged_rolling_volatilities|>
+                           filter(date>="2023-12-14",date<="2024-01-13")|>
+                           select(-date)|>pivot_longer(cols=everything(),names_to="Stock",
+                                                       values_to="Three_Day_Rolling_Volatility")
+rolling_volatilities_post_boxplot<-rolling_volatilities_post|>
+                                   ggplot(aes(x=Stock,y=Three_Day_Rolling_Volatility)) +
+                                   geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                                   labs(x="Stock",y="3-Day Rolling Volatility")
+rolling_volatilities_boxplot
 rolling_volatilities_pre_boxplot
 rolling_volatilities_post_boxplot
+
 ##Residuals
-
 residuals<-merged_residuals|>select(-date)|>pivot_longer (cols=everything(),names_to="Stock",values_to="Residuals")
-residuals_boxplot<-residuals|>ggplot(aes(x=Stock,y=Residuals))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Residuals")
-residuals_pre<-merged_residuals|>filter(date<="2023-12-12",date>="2023-11-13")|>select(-date)|>pivot_longer(cols=everything() ,names_to="Stock",values_to="Residuals")
-residuals_pre_boxplot<-residuals_pre|>ggplot(aes(x=Stock,y=Residuals))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Residuals")
-residuals_post<-merged_residuals|>filter(date>="2023-12-14",date<="2024-01-13")|>select(-date)|>pivot_longer(cols=everything(),names_to="Stock",values_to="Residuals")
-residuals_post_boxplot<-residuals_post|>ggplot(aes(x=Stock,y=Residuals))+geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE)+labs(x="Stock",y="Residuals")
-
+residuals_boxplot<-residuals|>ggplot(aes(x=Stock,y=Residuals)) +
+                              geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                              labs(x="Stock",y="Residuals")
+residuals_pre<-merged_residuals|>filter(date<="2023-12-12",date>="2023-11-13")|>
+                                 select(-date)|>pivot_longer(cols=everything(),names_to="Stock",
+                                                             values_to="Residuals")
+residuals_pre_boxplot<-residuals_pre|>ggplot(aes(x=Stock,y=Residuals)) +
+                                      geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                                      labs(x="Stock",y="Residuals")
+residuals_post<-merged_residuals|>filter(date>="2023-12-14",date<="2024-01-13")|>
+                                  select(-date)|>
+                                  pivot_longer(cols=everything(),names_to="Stock",values_to="Residuals")
+residuals_post_boxplot<-residuals_post|>
+                        ggplot(aes(x=Stock,y=Residuals)) +
+                        geom_boxplot(outliers=TRUE,outlier.colour="red",na.rm=TRUE) +
+                        labs(x="Stock",y="Residuals")
+residuals_boxplot
+residuals_pre_boxplot
+residuals_post_boxplot
 ```
+
 ## Summary Statistics
 
 Summary statistics tables included in addition to the boxplots to have a better sense of exact figures
 
 ```{r}
 ##Returns
-returns_summary<-returns|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),Q1=quantile(Returns,.25,na.rm=TRUE),Q3=quantile(Returns,.75,na.rm=TRUE),min=min(Returns,na.rm=TRUE),max=max(Returns,na.rm=TRUE),IQR=Q3-Q1, range=max-min)
-returns_summary_pre<-returns_pre|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),Q1=quantile(Returns,.25,na.rm=TRUE),Q3=quantile(Returns,.75,na.rm=TRUE),min=min(Returns,na.rm=TRUE),max=max(Returns,na.rm=TRUE),IQR=Q3-Q1, range=max-min)
-returns_summary_post<-returns_post|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),Q1=quantile(Returns,.25,na.rm=TRUE),Q3=quantile(Returns,.75,na.rm=TRUE),min=min(Returns,na.rm=TRUE),max=max(Returns,na.rm=TRUE),IQR=Q3-Q1, range=max-min)
+returns_summary<-returns|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),
+                                                     Q1=quantile(Returns,.25,na.rm=TRUE),
+                                                     Q3=quantile(Returns,.75,na.rm=TRUE),
+                                                     min=min(Returns,na.rm=TRUE),
+                                                     max=max(Returns,na.rm=TRUE),
+                                                     IQR=Q3-Q1, 
+                                                     range=max-min)
+returns_summary_pre<-returns_pre|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),
+                                                             Q1=quantile(Returns,.25,na.rm=TRUE),
+                                                             Q3=quantile(Returns,.75,na.rm=TRUE),
+                                                             min=min(Returns,na.rm=TRUE),
+                                                             max=max(Returns,na.rm=TRUE),
+                                                             IQR=Q3-Q1, range=max-min)
+returns_summary_post<-returns_post|>group_by(Stock)|>summarise(median=median(Returns,na.rm=TRUE),
+                                                               Q1=quantile(Returns,.25,na.rm=TRUE),
+                                                               Q3=quantile(Returns,.75,na.rm=TRUE),
+                                                               min=min(Returns,na.rm=TRUE),
+                                                               max=max(Returns,na.rm=TRUE),
+                                                               IQR=Q3-Q1, 
+                                                               range=max-min)
+returns_summary
+returns_summary_pre
+returns_summary_post
 
 ##Residuals
-residuals_summary<-residuals|>group_by(Stock)|>summarise(median=median(Residuals),Q1=quantile(Residuals,.25,na.rm=TRUE),Q3=quantile(Residuals,.75,na.rm=TRUE),min=min(Residuals),max=max(Residuals),IQR=Q3-Q1, range=max-min)
-residuals_summary_pre<-residuals_pre|>group_by(Stock)|>summarise(median=median(Residuals),Q1=quantile(Residuals,.25,na.rm=TRUE),Q3=quantile(Residuals,.75,na.rm=TRUE),min=min(Residuals),max=max(Residuals),IQR=Q3-Q1, range=max-min)
-residuals_summary_post<-residuals_post|>group_by(Stock)|>summarise(median=median(Residuals),Q1=quantile(Residuals,.25,na.rm=TRUE),Q3=quantile(Residuals,.75,na.rm=TRUE),min=min(Residuals),max=max(Residuals),IQR=Q3-Q1, range=max-min)
+residuals_summary<-residuals|>group_by(Stock)|>summarise(median=median(Residuals),
+                                                         Q1=quantile(Residuals,.25,na.rm=TRUE),
+                                                         Q3=quantile(Residuals,.75,na.rm=TRUE),
+                                                         min=min(Residuals),
+                                                         max=max(Residuals),
+                                                         IQR=Q3-Q1, 
+                                                         range=max-min)
+residuals_summary_pre<-residuals_pre|>group_by(Stock)|>summarise(median=median(Residuals),
+                                                                 Q1=quantile(Residuals,.25,na.rm=TRUE),
+                                                                 Q3=quantile(Residuals,.75,na.rm=TRUE),
+                                                                 min=min(Residuals),
+                                                                 max=max(Residuals),
+                                                                 IQR=Q3-Q1, 
+                                                                 range=max-min)
+residuals_summary_post<-residuals_post|>group_by(Stock)|>summarise(median=median(Residuals),
+                                                                   Q1=quantile(Residuals,.25,na.rm=TRUE),
+                                                                   Q3=quantile(Residuals,.75,na.rm=TRUE),
+                                                                   min=min(Residuals),
+                                                                   max=max(Residuals),
+                                                                   IQR=Q3-Q1, 
+                                                                   range=max-min)
+residuals_summary
+residuals_summary_pre
+residuals_summary_post
 
 ##3-Day Rolling Volatility
-rolling_volatilities_summary<-rolling_volatilities|>group_by(Stock)|>summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),min=min(Three_Day_Rolling_Volatility,na.rm=TRUE),max=max(Three_Day_Rolling_Volatility,na.rm=TRUE),IQR=Q3-Q1, range=max-min)
-rolling_volatilities_summary_pre<-rolling_volatilities_pre|>group_by(Stock)|>summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),min=min(Three_Day_Rolling_Volatility,na.rm=TRUE),max=max(Three_Day_Rolling_Volatility,na.rm=TRUE),IQR=Q3-Q1, range=max-min)
-rolling_volatilities_summary_post<-rolling_volatilities_post|>group_by(Stock)|>summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),min=min(Three_Day_Rolling_Volatility),max=max(Three_Day_Rolling_Volatility),IQR=Q3-Q1, range=max-min)
-
+rolling_volatilities_summary<-rolling_volatilities|>
+                              group_by(Stock)|>
+                              summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                        Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),
+                                        Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),
+                                        min=min(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                        max=max(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                        IQR=Q3-Q1, 
+                                        range=max-min)
+rolling_volatilities_summary_pre<-rolling_volatilities_pre|>
+                                  group_by(Stock)|>
+                                  summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                            Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),
+                                            Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),
+                                            min=min(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                            max=max(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                            IQR=Q3-Q1, 
+                                            range=max-min)
+rolling_volatilities_summary_post<-rolling_volatilities_post|>
+                                   group_by(Stock)|>
+                                   summarise(median=median(Three_Day_Rolling_Volatility,na.rm=TRUE),
+                                             Q1=quantile(Three_Day_Rolling_Volatility,.25,na.rm=TRUE),
+                                             Q3=quantile(Three_Day_Rolling_Volatility,.75,na.rm=TRUE),
+                                             min=min(Three_Day_Rolling_Volatility),
+                                             max=max(Three_Day_Rolling_Volatility),
+                                             IQR=Q3-Q1, 
+                                             range=max-min)
+rolling_volatilities_summary
 rolling_volatilities_summary_pre
 rolling_volatilities_summary_post
 ```
 
-With the exceptions of Walmart and Tesla, all stocks experienced an increase in the range of returns after the Federal Reserve decision. This observation makes sense as based on the time series, stock prices steadily increased to larger prices, with the exceptions of Walmart and Tesla. Tesla's stock prices did not trend upward, but instead trended downwards, which does not expand the possible return amounts it can take on as the stock prices exhibited were similar to that of before. Taking on a larger range of stock prices allows for growth in returns, which can result in a larger range. Additionally, all stocks except Walmart and Johnson & Johnson became more volatile following the interest rate hold, which contributes to more fluctuation in returns. 
+With the exceptions of Walmart and Tesla, all stocks experienced an increase in the range of returns after the Federal Reserve decision. This observation is consistent with the time series, where stock prices steadily increased to larger prices, with the exceptions of Walmart and Tesla. Tesla's stock prices did not trend upward, but instead trended downwards, which does not expand the possible return amounts it can take on, as the stock prices exhibited were similar to those of before. Taking on a larger range of stock prices allows for growth in returns, which may correspond to a larger range of returns. Additionally, all stocks except Walmart and Johnson & Johnson became more volatile following the interest rate hold, which contributes to more fluctuation in returns. 
 
-Other than Johnson & Johnson, Tesla, and Walmart, all stocks experienced an increase in the range of residuals. Given that Walmart and Johnson & Johnson also faced declines in volatility following the decision, it seems like these stocks are feeling less impact from this event. As a result, in addition to the previous suggestion that they are less influenced by events creating economic uncertainty, it can be suggested that Walmart and Johnson & Johnson are also less influenced by events reducing economic uncertainty. As for Tesla, it may seem confusing that it became more volatile afterwards but the range of residuals decreased. However, based on the residual decomposition, this may be attributed to the fact that there were less frequent staunch movements in residuals prior to the interest rate hold. The frequency of such changes in residuals makes sense, as Tesla faced its own company conflicts in the early days of 2024, as previously mentioned. As a result, they face more uncertainty, which the residuals reflected.
+Other than Johnson & Johnson, Tesla, and Walmart, all stocks experienced an increase in the range of residuals. Given that Walmart and Johnson & Johnson also faced declines in volatility following the decision, it seems like these stocks are feeling less impact from this event. As a result, in addition to the previous suggestion that they are less influenced by events creating economic uncertainty, it can be suggested that Walmart and Johnson & Johnson are also less influenced by events reducing economic uncertainty. As for Tesla, it may seem confusing that it became more volatile afterwards, but the range of residuals decreased. However, based on the residual decomposition, this may be attributed to the fact that there were fewer frequent large changes in residuals prior to the interest rate hold. The frequency of such changes in residuals coincide with Tesla's own company conflicts in the early days of 2024. As a result, they face more uncertainty, which the residuals reflect.
 
-Amazon, Johnson & Johnson, Nvidia, and Walmart experienced declines in median 3-day rolling volatility while Berkshite Hathaway and Tesla experienced increases. It may be common to assume that 3-day rolling volatilities should increase when the volatility increases, which occurred for all stocks except Walmart and Johnson & Johnson. However, if there are less sharp fluctuations in returns, than the median 3-day rolling volatility would be lower compared to a stock with a larger spread of returns and more frequent fluctuations. This is portrayed in the time series', as there are more periods of stock price stability.
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Amazon, Johnson & Johnson, Nvidia, and Walmart experienced declines in median 3-day rolling volatility, while Berkshire Hathaway and Tesla experienced increases. It may be common to assume that 3-day rolling volatilities should increase when the volatility increases, which occurred for all stocks except Walmart and Johnson & Johnson. However, if there are less sharp fluctuations in returns, then the median 3-day rolling volatility would be lower compared to a stock with a larger spread of returns and more frequent fluctuations. This is portrayed in the time series', as there are more periods of stock price stability.
