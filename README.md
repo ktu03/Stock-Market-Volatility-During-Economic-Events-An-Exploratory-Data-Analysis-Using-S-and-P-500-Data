@@ -69,7 +69,8 @@ team, the A. (2025, February 28). Understanding tariffs and how they can affect 
 
 Franklin, C. (n.d.). New Marquette Law School Poll national survey finds majority support for recent U.S. Supreme Court decisions, with bipartisan support for several, &nbsp;&nbsp;&nbsp;&nbsp;partisan divides for others. Marquette Law School Poll. [https://law.marquette.edu/poll/](https://law.marquette.edu/poll/)
 
-New mu law poll: Trump’s approval dips, majority disapprove of Musk. New Marquette Poll reveals dip in Trump approval. (n.d.). &nbsp;&nbsp;&nbsp;&nbsp;[https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-april-2025- ](https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-&nbsp;&nbsp;&nbsp;&nbsp;april-2025-trump-tariffs-inflation-elon-musk)  
+New mu law poll: Trump’s approval dips, majority disapprove of Musk. New Marquette Poll reveals dip in Trump approval. (n.d.). &nbsp;&nbsp;&nbsp;&nbsp;[https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-april-2025-trump-tariffs-inflation-elon-musk](https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-april-2025-trump-tariffs-inflation-elon-musk)
+
 
 
 
