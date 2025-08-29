@@ -64,10 +64,10 @@ This project has put more emphasis on the individual events themselves compared 
 ## References
 
 team, the A. (2025, February 28). Understanding tariffs and how they can affect your finances. Posts.  
-&nbsp;&nbsp;&nbsp;&nbsp;[https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation](https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-&nbsp;&nbsp;&nbsp;&nbsp;finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation)
+&nbsp;&nbsp;&nbsp;&nbsp;[https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-<br>&nbsp;&nbsp;&nbsp;&nbsp;finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation](https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation)
 
 
-Franklin, C. (n.d.). New Marquette Law School Poll national survey finds majority support for recent U.S. Supreme Court decisions, with bipartisan support for several, partisan divides for others. Marquette Law School Poll. [https://law.marquette.edu/poll/](https://law.marquette.edu/poll/)
+Franklin, C. (n.d.). New Marquette Law School Poll national survey finds majority support for recent U.S. Supreme Court decisions, with &nbsp;&nbsp;&nbsp;&nbsp;bipartisan support for several, partisan divides for others. Marquette Law School Poll. [https://law.marquette.edu/poll/](https://law.marquette.edu/poll/)
 
 New mu law poll: Trump’s approval dips, majority disapprove of Musk. New Marquette Poll reveals dip in Trump approval. (n.d.). &nbsp;&nbsp;&nbsp;&nbsp;[https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-april-2025-trump-tariffs-inflation-elon-musk](https://spectrumnews1.com/wi/madison/news/2025/04/02/marquette-law-school-poll-april-2025-trump-tariffs-inflation-elon-musk)
 
@@ -76,11 +76,13 @@ US judge rejects J&J’s $10 bln bid to settle talc cancer claims. (n.d.). https
 
 Consumer price index - May 2022. (n.d.-a). [https://www.bls.gov/news.release/archives/cpi_06102022.pdf](https://www.bls.gov/news.release/archives/cpi_06102022.pdf)
 
-Mercado, D. (2022, June 15). Here’s a full recap of the Fed’s 0.75 percentage point rate hike and Powell’s comments. CNBC. [https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html](https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html) 
+Mercado, D. (2022, June 15). Here’s a full recap of the Fed’s 0.75 percentage point rate hike and Powell’s comments. CNBC. &nbsp;&nbsp;&nbsp;&nbsp;[https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html](https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html) 
 
 
-Srinivasan, H. (n.d.). Historical U.S. inflation rate by year: 1929 to 2025. Investopedia. [https://www.investopedia.com/inflation-rate-by-year-7253832](https://www.investopedia.com/inflation-rate-by-year-7253832) 
+Srinivasan, H. (n.d.). Historical U.S. inflation rate by year: 1929 to 2025. Investopedia. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;[https://www.investopedia.com/inflation-rate-by-year-7253832](https://www.investopedia.com/inflation-rate-by-year-7253832) 
 
 
-Tierney, A. (2025, March 11). Monthly inflation rate U.S. 2025. Statista. [https://www.statista.com/statistics/273418/unadjusted-monthly-inflation-rate-in-the-us/](https://www.statista.com/statistics/273418/unadjusted-monthly-inflation-rate-in-the-us/) 
+Tierney, A. (2025, March 11). Monthly inflation rate U.S. 2025. Statista. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;[https://www.statista.com/statistics/273418/unadjusted-monthly-inflation-rate-in-the-us/](https://www.statista.com/statistics/273418/unadjusted-monthly-inflation-rate-in-the-us/) 
 
