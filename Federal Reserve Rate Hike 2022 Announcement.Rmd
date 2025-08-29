@@ -22,37 +22,37 @@ Below are the daily time series for the stock prices from the selected GICS sect
 ##Nvidia
 nvda_data<-tq_get("NVDA",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_nvda<-xts(nvda_data$adjusted,order.by=nvda_data$date)
-plot(xts_nvda,main="Nvidia Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_nvda,main="Nvidia Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 nvda_data
 
 ##Amazon
 amzn_data<-tq_get("AMZN",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_amzn<-xts(amzn_data$adjusted,order.by=amzn_data$date)
-plot(xts_amzn,main="Amazon Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_amzn,main="Amazon Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 amzn_data
 
 ##Berkshire Hathaway
 brkb_data<-tq_get("BRK-B",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_brkb<-xts(brkb_data$adjusted,order.by=brkb_data$date)
-plot(xts_brkb,main="Berkshire Hathaway Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_brkb,main="Berkshire Hathaway Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 brkb_data
 
 ##Tesla
 tsla_data<-tq_get("TSLA",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_tsla<-xts(tsla_data$adjusted,order.by=tsla_data$date)
-plot(xts_tsla,main="Tesla Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_tsla,main="Tesla Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 tsla_data
 
 ##Walmart
 wmt_data<-tq_get("WMT",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_wmt<-xts(wmt_data$adjusted,order.by=tsla_data$date)
-plot(xts_wmt,main="Walmart Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_wmt,main="Walmart Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 wmt_data
 
 ##Johnson & Johnson
 jnj_data<-tq_get("JNJ",get="stock.prices",complete_cases=TRUE,from="2022-05-15",to="2022-07-15")
 xts_jnj<-xts(jnj_data$adjusted,order.by=tsla_data$date)
-plot(xts_jnj,main="Johnson & Johnson Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price")
+plot(xts_jnj,main="Johnson & Johnson Time Series Before/After Federal Reserve Announcement",xlab="Date",ylab="Stock Price (USD)")
 jnj_data
 ```
 
@@ -136,7 +136,7 @@ Trend and Residual decompositions are created for the Time Series for Liberation
 loess_nvda<-loess(adjusted~as.numeric(date),data=nvda_data,span=nvda_optimal_span)
 smooth_nvda<-predict(loess_nvda)
 trend_decomp_nvda_plot<-nvda_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_nvda),color="red",linewidth=1.4)+
-                                   labs(title="NVDA Trend Decomposition",x="Date",y="Stock Price") +
+                                   labs(title="NVDA Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                    theme_minimal()
 trend_decomp_nvda_plot
 nvda_data$residual_decomp<-residuals(loess_nvda)
@@ -150,7 +150,7 @@ nvda_data
 loess_amzn<-loess(adjusted~as.numeric(date),data=amzn_data,span=amzn_optimal_span)
 smooth_amzn<-predict(loess_amzn)
 trend_decomp_amzn_plot<-amzn_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_amzn),color="red",linewidth=1.4) +
-                                   labs(title="AMZN Trend Decomposition",x="Date",y="Stock Price") +
+                                   labs(title="AMZN Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                    theme_minimal()
 trend_decomp_amzn_plot
 amzn_data$residual_decomp<-residuals(loess_amzn)
@@ -164,7 +164,7 @@ amzn_data
 loess_brkb<-loess(adjusted~as.numeric(date),data=brkb_data,span=brkb_optimal_span)
 smooth_brkb<-predict(loess_brkb)
 trend_decomp_brkb_plot<-brkb_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_brkb),color="red",linewidth=1.4) +
-                                   labs(title="BRKB Trend Decomposition",x="Date",y="Stock Price") +
+                                   labs(title="BRKB Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                    theme_minimal()
 trend_decomp_brkb_plot
 brkb_data$residual_decomp<-residuals(loess_brkb)
@@ -178,7 +178,7 @@ brkb_data
 loess_tsla<-loess(adjusted~as.numeric(date),data=tsla_data,span=tsla_optimal_span)
 smooth_tsla<-predict(loess_tsla)
 trend_decomp_tsla_plot<-tsla_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_tsla),color="red",linewidth=1.4) +
-                                   labs(title="TSLA Trend Decomposition",x="Date",y="Stock Price") +
+                                   labs(title="TSLA Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                    theme_minimal()
 trend_decomp_tsla_plot
 tsla_data$residual_decomp<-residuals(loess_tsla)
@@ -192,7 +192,7 @@ tsla_data
 loess_wmt<-loess(adjusted~as.numeric(date),data=wmt_data,span=wmt_optimal_span)
 smooth_wmt<-predict(loess_wmt)
 trend_decomp_wmt_plot<-wmt_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_wmt),color="red",linewidth=1.4 ) +
-                                 labs(title="WMT Trend Decomposition",x="Date",y="Stock Price") +
+                                 labs(title="WMT Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                  theme_minimal()
 trend_decomp_wmt_plot
 wmt_data$residual_decomp<-residuals(loess_wmt)
@@ -206,7 +206,7 @@ wmt_data
 loess_jnj<-loess(adjusted~as.numeric(date),data=jnj_data,span=jnj_optimal_span)
 smooth_jnj<-predict(loess_jnj)
 trend_decomp_jnj_plot<-jnj_data|>ggplot(aes(x=date))+geom_line(aes(y=smooth_jnj),color="red",linewidth=1.4) +
-                                 labs(title="JNJ Trend Decomposition",x="Date",y="Stock Price") +
+                                 labs(title="JNJ Trend Decomposition",x="Date",y="Stock Price (USD)") +
                                  theme_minimal()
 trend_decomp_jnj_plot
 jnj_data$residual_decomp<-residuals(loess_jnj)
