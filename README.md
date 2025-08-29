@@ -73,6 +73,7 @@ New mu law poll: Trump’s approval dips, majority disapprove of Musk. New Marqu
 
 
 US judge rejects J&J’s $10 bln bid to settle talc cancer claims. (n.d.). https://www.reuters.com/video/watch/idRW320501042025RP1/ 
+
 Consumer price index - May 2022. (n.d.-a). [https://www.bls.gov/news.release/archives/cpi_06102022.pdf](https://www.bls.gov/news.release/archives/cpi_06102022.pdf)
 
 Mercado, D. (2022, June 15). Here’s a full recap of the Fed’s 0.75 percentage point rate hike and Powell’s comments. CNBC. [https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html](https://www.cnbc.com/2022/06/15/real-time-updates-of-the-feds-big-rate-decision-and-powells-press-conference.html) 
