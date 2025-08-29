@@ -63,8 +63,8 @@ This project has put more emphasis on the individual events themselves compared 
 
 ## References
 
-team, the A. (2025, February 28). Understanding tariffs and how they can affect your finances. Posts. 
-&nbsp;https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-  finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation 
+team, the A. (2025, February 28). Understanding tariffs and how they can affect your finances. Posts.  
+&nbsp;&nbsp;&nbsp;&nbsp;<a ref = "https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-  finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation">"https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.understanding-tariffs-and-how-they-can-affect-your-  finances.html#:~:text=Tariffs%20introduce%20a%20layer%20of,employment%2C%20economic%20growth%20and%20inflation"</a>
 
 Franklin, C. (n.d.). New Marquette Law School Poll national survey finds majority support for recent U.S. Supreme Court decisions, with bipartisan support for several, partisan divides for others. Marquette Law School &nbsp;Poll. https://law.marquette.edu/poll/ 
 
